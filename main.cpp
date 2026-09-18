@@ -1,5 +1,9 @@
 #include <iostream>
-#include <conio.h>
+#include <cstdlib>      // rand(), srand(), system()
+#include <ctime>        // time()
+#include <unistd.h>     // usleep(), read()
+#include <termios.h>    // cau hinh terminal cho kbhit/getch
+#include <fcntl.h>      // fcntl() - doc phim khong block
 
 using namespace std;
 
@@ -10,72 +14,78 @@ char board[H][W] = {};
 
 int x, y, b;
 
+// 7 loai khoi Tetris chuan: I, O, T, S, Z, J, L
 char blocks[][4][4] = {
-        {{' ','I',' ',' '},
-         {' ','I',' ',' '},
-         {' ','I',' ',' '},
-         {' ','I',' ',' '}},
-        {{' ','I',' ',' '},
-         {' ','I',' ',' '},
-         {' ','I',' ',' '},
-         {' ','I',' ',' '}},
+        {{' ',' ','I',' '},
+         {' ',' ','I',' '},
+         {' ',' ','I',' '},
+         {' ',' ','I',' '}},
+
         {{' ',' ',' ',' '},
          {' ','O','O',' '},
          {' ','O','O',' '},
          {' ',' ',' ',' '}},
-        {{' ',' ',' ',' '},
-         {' ','O','O',' '},
-         {' ','O','O',' '},
-         {' ',' ',' ',' '}},
-        {{' ',' ',' ',' '},
-         {' ','O','O',' '},
-         {' ','O','O',' '},
-         {' ',' ',' ',' '}},
-        {{' ',' ',' ',' '},
-         {' ','O','O',' '},
-         {' ','O','O',' '},
-         {' ',' ',' ',' '}},
-        {{' ',' ',' ',' '},
-         {' ','O','O',' '},
-         {' ','O','O',' '},
-         {' ',' ',' ',' '}},
-        {{' ',' ',' ',' '},
-         {' ','O','O',' '},
-         {' ','O','O',' '},
-         {' ',' ',' ',' '}},
-        {{' ',' ',' ',' '},
-         {' ','O','O',' '},
-         {' ','O','O',' '},
-         {' ',' ',' ',' '}},
-        {{' ',' ',' ',' '},
-         {'I','I','I','I'},
-         {' ',' ',' ',' '},
-         {' ',' ',' ',' '}},
-        {{' ',' ',' ',' '},
-         {' ','O','O',' '},
-         {' ','O','O',' '},
-         {' ',' ',' ',' '}},
+
         {{' ',' ',' ',' '},
          {' ','T',' ',' '},
          {'T','T','T',' '},
          {' ',' ',' ',' '}},
+
         {{' ',' ',' ',' '},
          {' ','S','S',' '},
          {'S','S',' ',' '},
          {' ',' ',' ',' '}},
+
         {{' ',' ',' ',' '},
          {'Z','Z',' ',' '},
          {' ','Z','Z',' '},
          {' ',' ',' ',' '}},
+
         {{' ',' ',' ',' '},
          {'J',' ',' ',' '},
          {'J','J','J',' '},
          {' ',' ',' ',' '}},
+
         {{' ',' ',' ',' '},
          {' ',' ','L',' '},
          {'L','L','L',' '},
          {' ',' ',' ',' '}}
 };
+
+const int NUM_BLOCKS = 7;
+
+// ---- kbhit() / getch() thay the cho conio.h tren Linux ----
+struct termios oldt, newt;
+
+void initTermios(){
+    tcgetattr(STDIN_FILENO, &oldt);          // luu cau hinh terminal cu
+    newt = oldt;
+    newt.c_lflag &= ~(ICANON | ECHO);        // tat che do "line buffered" va echo
+    tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+    int flags = fcntl(STDIN_FILENO, F_GETFL, 0);
+    fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK); // doc khong block
+}
+
+void resetTermios(){
+    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // tra terminal ve trang thai cu
+}
+
+int kbhit(){
+    unsigned char ch;
+    int nread = read(STDIN_FILENO, &ch, 1);
+    if (nread == 1){
+        ungetc(ch, stdin); // "tra lai" ky tu de getch() doc duoc
+        return 1;
+    }
+    return 0;
+}
+
+char getch(){
+    char ch;
+    ch = getchar();
+    return ch;
+}
+// -------------------------------------------------------------
 
 bool canMove(int dx, int dy){
     for (int i = 0; i < 4; i++ )
@@ -111,7 +121,7 @@ void initBoard(){
 }
 
 void draw(){
-    system("cls");
+    system("clear");
 
     for (int i = 0 ; i < H ; i++, cout<<endl)
         for (int j = 0 ; j < W ; j++) cout<<board[i][j];
@@ -120,10 +130,10 @@ void draw(){
 int removeLine(){
     int removedLines = 0;
 
-    // Duyệt từ hàng dưới cùng lên trên
+    // Duyet tu hang duoi cung len tren
     for (int i = H - 2; i >= 1; i--) {
 
-        // Kiểm tra hàng i có đầy hay không
+        // Kiem tra hang i co day hay khong
         bool full = true;
 
         for (int j = 1; j < W - 1; j++) {
@@ -133,17 +143,17 @@ int removeLine(){
             }
         }
 
-        // Nếu hàng đầy -> xóa hàng
+        // Neu hang day -> xoa hang
         if (full) {
 
-            // Dồn tất cả các hàng phía trên xuống 1 bậc
+            // Don tat ca cac hang phia tren xuong 1 bac
             for (int row = i; row > 1; row--) {
                 for (int col = 1; col < W - 1; col++) {
                     board[row][col] = board[row - 1][col];
                 }
             }
 
-            // Hàng 1 trở thành hàng trống
+            // Hang 1 tro thanh hang trong
             for (int col = 1; col < W - 1; col++) {
                 board[1][col] = ' ';
             }
@@ -158,8 +168,11 @@ int removeLine(){
 }
 
 int main() {
-    srand(time(0));
-    x = 5; y = 0; b = rand()%7;
+    initTermios();          // bat che do doc phim khong block cho terminal
+    atexit(resetTermios);   // dam bao terminal duoc tra ve binh thuong khi thoat
+
+    srand((unsigned int)time(0));
+    x = 5; y = 0; b = rand() % NUM_BLOCKS;
     initBoard();
     while (1){
         boardDelBlock();
@@ -174,11 +187,11 @@ int main() {
         else{
             block2Board();
             int removedLines = removeLine();
-            x = 5; y = 0; b = rand()%7;
+            x = 5; y = 0; b = rand() % NUM_BLOCKS;
         }
         block2Board();
         draw();
-        _sleep(500);
+        usleep(500 * 1000); // usleep tinh bang micro-giay, nen 500ms = 500*1000
     }
     return 0;
 }
