@@ -117,21 +117,44 @@ void draw(){
         for (int j = 0 ; j < W ; j++) cout<<board[i][j];
 }
 
-// ============================================================
-// TODO (SV2 - Hieu): Cai dat lai ham nay tu dau.
-//
-// Yeu cau:
-// - Duyet tung hang tu duoi len tren (tu hang H-2 den hang 1).
-// - Neu 1 hang day (khong con o trong ' '), xoa hang do va don
-//   cac hang phia tren xuong 1 bac.
-// - Xu ly truong hop xoa nhieu hang cung luc (toi da 4 hang = Tetris).
-// - Nen dem so hang da xoa va return int (SV5 - Thu can gia tri
-//   nay de tinh toc do roi tang dan).
-//
-// Xem chi tiet huong dan trong Trello card [Hieu - SV2].
-// ============================================================
-void removeLine(){
-    // TODO: cai dat logic xoa hang tai day
+int removeLine(){
+    int removedLines = 0;
+
+    // Duyệt từ hàng dưới cùng lên trên
+    for (int i = H - 2; i >= 1; i--) {
+
+        // Kiểm tra hàng i có đầy hay không
+        bool full = true;
+
+        for (int j = 1; j < W - 1; j++) {
+            if (board[i][j] == ' ') {
+                full = false;
+                break;
+            }
+        }
+
+        // Nếu hàng đầy -> xóa hàng
+        if (full) {
+
+            // Dồn tất cả các hàng phía trên xuống 1 bậc
+            for (int row = i; row > 1; row--) {
+                for (int col = 1; col < W - 1; col++) {
+                    board[row][col] = board[row - 1][col];
+                }
+            }
+
+            // Hàng 1 trở thành hàng trống
+            for (int col = 1; col < W - 1; col++) {
+                board[1][col] = ' ';
+            }
+
+            removedLines++;
+
+            i++;
+        }
+    }
+
+    return removedLines;
 }
 
 int main() {
@@ -150,7 +173,7 @@ int main() {
         if (canMove(0,1)) y++;
         else{
             block2Board();
-            removeLine();
+            int removedLines = removeLine();
             x = 5; y = 0; b = rand()%7;
         }
         block2Board();
