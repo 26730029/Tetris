@@ -111,10 +111,18 @@ void initBoard(){
 }
 
 void draw(){
-    system("cls");
-
-    for (int i = 0 ; i < H ; i++, cout<<endl)
-        for (int j = 0 ; j < W ; j++) cout<<board[i][j];
+    system("cls"); 
+    for (int i = 0 ; i < H ; i++, cout << endl) {
+        for (int j = 0 ; j < W ; j++) {
+            if (board[i][j] == ' ') {
+                cout << "  "; // In 2 khoảng trắng cho ô trống
+            } else if (board[i][j] == '#') {
+                cout << "##"; // In 2 ký tự # để tạo thành hình vuông làm tường
+            } else {
+                cout << "[]"; // Hoặc in "██" / "[ ]" / 2 ký tự đại diện cho khối gạch
+            }
+        }
+    }
 }
 
 int removeLine(){
