@@ -87,6 +87,39 @@ char getch(){
 }
 // -------------------------------------------------------------
 
+// forward declaration -- canMove() duoc dinh nghia ben duoi
+// nhung rotateCurrentBlock() can goi den no truoc do.
+bool canMove(int dx, int dy);
+
+void rotateCurrentBlock() {
+    char temp[4][4];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            temp[j][3 - i] = blocks[b][i][j];
+        }
+    }
+    
+    char old[4][4];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            old[i][j] = blocks[b][i][j];
+        }
+    }
+
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            blocks[b][i][j] = temp[i][j];
+        }
+    }
+
+    if (!canMove(0, 0)) {
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                blocks[b][i][j] = old[i][j];
+            }
+        }
+    }
+}
 bool canMove(int dx, int dy){
     for (int i = 0; i < 4; i++ )
         for (int j = 0; j < 4; j++ )
@@ -121,7 +154,7 @@ void initBoard(){
 }
 
 void draw(){
-    system("cls"); 
+    system("clear"); // "cls" la lenh Windows, tren Linux phai dung "clear"
     for (int i = 0 ; i < H ; i++, cout << endl) {
         for (int j = 0 ; j < W ; j++) {
             if (board[i][j] == ' ') {
@@ -189,6 +222,7 @@ int main() {
         boardDelBlock();
         if (kbhit()){
             char c = getch();
+            if (c == 'w') rotateCurrentBlock();
             if (c == 'a' && canMove(-1,0)) x--;
             if (c == 'd' && canMove( 1,0)) x++;
             if (c == 'x' && canMove( 0,1)) y++;
@@ -197,8 +231,6 @@ int main() {
         if (canMove(0,1)) y++;
         else{
             block2Board();
-            // int removedLines = removeLine();
-            // x = 5; y = 0; b = rand() % NUM_BLOCKS;
             int removedLines = removeLine();
             // them doan logic tang toc
             if (removedLines > 0) {
