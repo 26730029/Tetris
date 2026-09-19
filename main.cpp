@@ -4,6 +4,7 @@
 #include <unistd.h>     // usleep(), read()
 #include <termios.h>    // cau hinh terminal cho kbhit/getch
 #include <fcntl.h>      // fcntl() - doc phim khong block
+#include <csignal>      // xu ly Ctrl+C (SIGINT) an toan
 
 using namespace std;
 
@@ -73,6 +74,15 @@ void initTermios(){
 
 void resetTermios(){
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // tra terminal ve trang thai cu
+}
+
+// neu nguoi choi bam Ctrl+C (SIGINT) de thoat gap trong luc dang choi,
+// atexit() KHONG duoc goi -- terminal se bi ket o che do raw, nhin
+// giong nhu bi "crash"/treo. Dang ky handler nay de dam bao terminal
+// luon duoc tra ve trang thai cu truoc khi thoat, du thoat bang cach nao.
+void handleSignal(int){
+    resetTermios();
+    exit(0);
 }
 
 int kbhit(){
@@ -230,6 +240,8 @@ const int FRAME_MS = 16;  // ~60 FPS -- tan suat doc phim, KHONG lien quan toi t
 int main() {
     initTermios();          // bat che do doc phim khong block cho terminal
     atexit(resetTermios);   // dam bao terminal duoc tra ve binh thuong khi thoat
+    signal(SIGINT, handleSignal);   // Ctrl+C
+    signal(SIGTERM, handleSignal);  // kill
 
     srand((unsigned int)time(0));
     spawnBlock();
