@@ -6,6 +6,12 @@
 #include <fcntl.h>   // fcntl() - doc phim khong block
 #include <csignal>   // xu ly Ctrl+C (SIGINT) an toan
 
+#include "Blocks.h"
+// TAM THOI: xem ghi chu trong TempBlocks.h -- se bi thay the boi
+// IBlock.h, OBlock.h, TBlock.h, SBlock.h, ZBlock.h, JBlock.h, LBlock.h
+// that su khi Khanh merge xong tat ca cac nhanh cua nhom.
+#include "TempBlocks.h"
+
 using namespace std;
 
 #define H 20
@@ -15,49 +21,22 @@ char board[H][W] = {};
 
 int x, y, b;
 
-// 7 loai khoi Tetris chuan: I, O, T, S, Z, J, L
-char blocks[][4][4] = {
-    {{' ', ' ', 'I', ' '},
-     {' ', ' ', 'I', ' '},
-     {' ', ' ', 'I', ' '},
-     {' ', ' ', 'I', ' '}},
-
-    {{' ', ' ', ' ', ' '},
-     {' ', 'O', 'O', ' '},
-     {' ', 'O', 'O', ' '},
-     {' ', ' ', ' ', ' '}},
-
-    {{' ', ' ', ' ', ' '},
-     {' ', 'T', ' ', ' '},
-     {'T', 'T', 'T', ' '},
-     {' ', ' ', ' ', ' '}},
-
-    {{' ', ' ', ' ', ' '},
-     {' ', 'S', 'S', ' '},
-     {'S', 'S', ' ', ' '},
-     {' ', ' ', ' ', ' '}},
-
-    {{' ', ' ', ' ', ' '},
-     {'Z', 'Z', ' ', ' '},
-     {' ', 'Z', 'Z', ' '},
-     {' ', ' ', ' ', ' '}},
-
-    {{' ', ' ', ' ', ' '},
-     {'J', ' ', ' ', ' '},
-     {'J', 'J', 'J', ' '},
-     {' ', ' ', ' ', ' '}},
-
-    {{' ', ' ', ' ', ' '},
-     {' ', ' ', 'L', ' '},
-     {'L', 'L', 'L', ' '},
-     {' ', ' ', ' ', ' '}}};
-
 const int NUM_BLOCKS = 7;
 
-// Hinh dang cua khoi DANG ROI hien tai (co the bi xoay).
-// Duoc COPY tu blocks[b] moi khi spawn khoi moi -- khong bao gio
-// tham chieu truc tiep vao blocks[][4][4], de tranh lam hong khuon mau goc.
-char currentShape[4][4];
+// Con tro toi khoi DANG ROI hien tai. Moi lan spawn, ta tao 1 OBJECT
+// MOI (new IBlock()/new OBlock()/...) thay vi copy tu 1 mang khuon
+// mau dung chung -- nen khong con kha nang bi "hong khuon mau goc"
+// nhu bug cu (xem lai lich su commit currentShape refactor).
+Blocks *currentBlock = nullptr;
+
+// Factory: tao 1 object khoi moi dung loai (0..6), tra ve qua con tro
+// lop cha Blocks*. Day la noi DUY NHAT trong file can sua khi cac
+// class that (IBlock, OBlock...) duoc merge vao -- thay GenericBlock
+// bang dung ten class tuong ung.
+Blocks *createBlock(int type)
+{
+    return new GenericBlock(TEMP_BLOCK_DATA[type]);
+}
 
 // ---- kbhit() / getch() thay the cho conio.h tren Linux ----
 struct termios oldt, newt;
@@ -107,59 +86,39 @@ char getch()
 }
 // -------------------------------------------------------------
 
-// forward declaration -- canMove() duoc dinh nghia ben duoi
-// nhung rotateCurrentBlock() can goi den no truoc do.
 bool canMove(int dx, int dy);
 
-// Sinh khoi moi: COPY hinh dang tu khuon mau blocks[b] sang currentShape,
-// khong bao gio thao tac truc tiep tren blocks[][4][4].
+// Sinh khoi moi: tao object moi qua factory, giai phong khoi cu truoc
+// de tranh memory leak (moi lan spawn deu new 1 object, neu khong
+// delete khoi cu se bi leak dan theo thoi gian choi).
 void spawnBlock()
 {
+    delete currentBlock;
     b = rand() % NUM_BLOCKS;
-    for (int i = 0; i < 4; i++)
-        for (int j = 0; j < 4; j++)
-            currentShape[i][j] = blocks[b][i][j];
+    currentBlock = createBlock(b);
     x = 5;
     y = 0;
 }
 
+// Xoay khoi dang roi. currentBlock->rotate() la mot loi goi DA HINH:
+// C++ tu dong chay dung phien ban rotate() cua class con thuc te
+// (vi du OBlock se khong lam gi ca, cac khoi khac dung ham xoay mac
+// dinh trong Blocks). Neu vi tri sau khi xoay khong hop le, revert
+// lai bang get()/set() (khong can biet class con la gi).
 void rotateCurrentBlock()
 {
-    char temp[4][4];
-    for (int i = 0; i < 4; i++)
-    {
-        for (int j = 0; j < 4; j++)
-        {
-            temp[j][3 - i] = currentShape[i][j];
-        }
-    }
-
     char old[4][4];
     for (int i = 0; i < 4; i++)
-    {
         for (int j = 0; j < 4; j++)
-        {
-            old[i][j] = currentShape[i][j];
-        }
-    }
+            old[i][j] = currentBlock->get(i, j);
 
-    for (int i = 0; i < 4; i++)
-    {
-        for (int j = 0; j < 4; j++)
-        {
-            currentShape[i][j] = temp[i][j];
-        }
-    }
+    currentBlock->rotate();
 
     if (!canMove(0, 0))
     {
         for (int i = 0; i < 4; i++)
-        {
             for (int j = 0; j < 4; j++)
-            {
-                currentShape[i][j] = old[i][j];
-            }
-        }
+                currentBlock->set(i, j, old[i][j]);
     }
 }
 
@@ -167,7 +126,7 @@ bool canMove(int dx, int dy)
 {
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
-            if (currentShape[i][j] != ' ')
+            if (currentBlock->get(i, j) != ' ')
             {
                 int xt = x + j + dx;
                 int yt = y + i + dy;
@@ -183,15 +142,15 @@ void block2Board()
 {
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
-            if (currentShape[i][j] != ' ')
-                board[y + i][x + j] = currentShape[i][j];
+            if (currentBlock->get(i, j) != ' ')
+                board[y + i][x + j] = currentBlock->get(i, j);
 }
 
 void boardDelBlock()
 {
     for (int i = 0; i < 4; i++)
         for (int j = 0; j < 4; j++)
-            if (currentShape[i][j] != ' ')
+            if (currentBlock->get(i, j) != ' ')
                 board[y + i][x + j] = ' ';
 }
 
@@ -347,5 +306,7 @@ int main()
         draw();
         usleep(FRAME_MS * 1000); // luon ngu dung 16ms/frame, KHONG phu thuoc sleepTime nua
     }
+
+    delete currentBlock; // giai phong khoi cuoi cung truoc khi thoat
     return 0;
 }
