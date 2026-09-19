@@ -175,6 +175,9 @@ int removeLine(){
     return removedLines;
 }
 
+int sleepTime = 500;
+int totalLinesCleared = 0;
+
 int main() {
     initTermios();          // bat che do doc phim khong block cho terminal
     atexit(resetTermios);   // dam bao terminal duoc tra ve binh thuong khi thoat
@@ -194,12 +197,25 @@ int main() {
         if (canMove(0,1)) y++;
         else{
             block2Board();
+            // int removedLines = removeLine();
+            // x = 5; y = 0; b = rand() % NUM_BLOCKS;
             int removedLines = removeLine();
+            // them doan logic tang toc
+            if (removedLines > 0) {
+                totalLinesCleared += removedLines; // cong don hang da xoa
+                sleepTime = 500 - (totalLinesCleared / 5) * 50; // cu 5 hang xoa duoc thi giam 50ms thoi gian roi
+                // goi han toc do khong nho hon 100ms
+                if (sleepTime < 100) {
+                    sleepTime = 100;
+                }
+            }
             x = 5; y = 0; b = rand() % NUM_BLOCKS;
+
         }
         block2Board();
         draw();
-        usleep(500 * 1000); // usleep tinh bang micro-giay, nen 500ms = 500*1000
+       // usleep(500 * 1000); // usleep tinh bang micro-giay, nen 500ms = 500*1000
+        usleep(sleepTime * 1000); 
     }
     return 0;
 }
