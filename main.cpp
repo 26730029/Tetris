@@ -123,7 +123,7 @@ void rotateCurrentBlock() {
             temp[j][3 - i] = currentShape[i][j];
         }
     }
-    
+
     char old[4][4];
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
@@ -145,6 +145,7 @@ void rotateCurrentBlock() {
         }
     }
 }
+
 bool canMove(int dx, int dy){
     for (int i = 0; i < 4; i++ )
         for (int j = 0; j < 4; j++ )
@@ -183,11 +184,11 @@ void draw(){
     for (int i = 0 ; i < H ; i++, cout << endl) {
         for (int j = 0 ; j < W ; j++) {
             if (board[i][j] == ' ') {
-                cout << "  "; // In 2 khoảng trắng cho ô trống
+                cout << "  "; // In 2 khoang trang cho o trong
             } else if (board[i][j] == '#') {
-                cout << "##"; // In 2 ký tự # để tạo thành hình vuông làm tường
+                cout << "##"; // In 2 ky tu # de tao thanh hinh vuong lam tuong
             } else {
-                cout << "[]"; // Hoặc in "██" / "[ ]" / 2 ký tự đại diện cho khối gạch
+                cout << "[]"; // 2 ky tu dai dien cho khoi gach
             }
         }
     }
