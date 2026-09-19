@@ -54,6 +54,11 @@ char blocks[][4][4] = {
 
 const int NUM_BLOCKS = 7;
 
+// Hinh dang cua khoi DANG ROI hien tai (co the bi xoay).
+// Duoc COPY tu blocks[b] moi khi spawn khoi moi -- khong bao gio
+// tham chieu truc tiep vao blocks[][4][4], de tranh lam hong khuon mau goc.
+char currentShape[4][4];
+
 // ---- kbhit() / getch() thay the cho conio.h tren Linux ----
 struct termios oldt, newt;
 
@@ -91,31 +96,41 @@ char getch(){
 // nhung rotateCurrentBlock() can goi den no truoc do.
 bool canMove(int dx, int dy);
 
+// Sinh khoi moi: COPY hinh dang tu khuon mau blocks[b] sang currentShape,
+// khong bao gio thao tac truc tiep tren blocks[][4][4].
+void spawnBlock(){
+    b = rand() % NUM_BLOCKS;
+    for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 4; j++)
+            currentShape[i][j] = blocks[b][i][j];
+    x = 5; y = 0;
+}
+
 void rotateCurrentBlock() {
     char temp[4][4];
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            temp[j][3 - i] = blocks[b][i][j];
+            temp[j][3 - i] = currentShape[i][j];
         }
     }
     
     char old[4][4];
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            old[i][j] = blocks[b][i][j];
+            old[i][j] = currentShape[i][j];
         }
     }
 
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
-            blocks[b][i][j] = temp[i][j];
+            currentShape[i][j] = temp[i][j];
         }
     }
 
     if (!canMove(0, 0)) {
         for (int i = 0; i < 4; i++) {
             for (int j = 0; j < 4; j++) {
-                blocks[b][i][j] = old[i][j];
+                currentShape[i][j] = old[i][j];
             }
         }
     }
@@ -123,7 +138,7 @@ void rotateCurrentBlock() {
 bool canMove(int dx, int dy){
     for (int i = 0; i < 4; i++ )
         for (int j = 0; j < 4; j++ )
-            if (blocks[b][i][j] != ' ') {
+            if (currentShape[i][j] != ' ') {
                 int xt = x + j + dx;
                 int yt = y + i + dy;
                 if (xt < 1 || xt >= W-1 || yt >= H-1 ) return false;
@@ -135,14 +150,14 @@ bool canMove(int dx, int dy){
 void block2Board(){
     for (int i = 0; i < 4; i++ )
         for (int j = 0; j < 4; j++ )
-            if (blocks[b][i][j] != ' ')
-                board[y+i][x+j] = blocks[b][i][j];
+            if (currentShape[i][j] != ' ')
+                board[y+i][x+j] = currentShape[i][j];
 }
 
 void boardDelBlock(){
     for (int i = 0; i < 4; i++ )
         for (int j = 0; j < 4; j++ )
-            if (blocks[b][i][j] != ' ')
+            if (currentShape[i][j] != ' ')
                 board[y+i][x+j] = ' ';
 }
 
@@ -216,7 +231,7 @@ int main() {
     atexit(resetTermios);   // dam bao terminal duoc tra ve binh thuong khi thoat
 
     srand((unsigned int)time(0));
-    x = 5; y = 0; b = rand() % NUM_BLOCKS;
+    spawnBlock();
     initBoard();
     while (1){
         boardDelBlock();
@@ -241,7 +256,7 @@ int main() {
                     sleepTime = 100;
                 }
             }
-            x = 5; y = 0; b = rand() % NUM_BLOCKS;
+            spawnBlock();
 
         }
         block2Board();
