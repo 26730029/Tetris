@@ -225,6 +225,7 @@ int removeLine(){
 
 int sleepTime = 500;
 int totalLinesCleared = 0;
+const int FRAME_MS = 16;  // ~60 FPS -- tan suat doc phim, KHONG lien quan toi toc do roi
 
 int main() {
     initTermios();          // bat che do doc phim khong block cho terminal
@@ -233,36 +234,46 @@ int main() {
     srand((unsigned int)time(0));
     spawnBlock();
     initBoard();
-    while (1){
+
+    int elapsedTime = 0;    // bo dem thoi gian rieng cho gravity (roi xuong)
+    bool quit = false;
+
+    while (!quit){
         boardDelBlock();
-        if (kbhit()){
+
+        // doc HET tat ca phim dang cho trong hang doi, khong chi 1 phim/vong lap
+        while (kbhit()){
             char c = getch();
             if (c == 'w') rotateCurrentBlock();
             if (c == 'a' && canMove(-1,0)) x--;
             if (c == 'd' && canMove( 1,0)) x++;
             if (c == 'x' && canMove( 0,1)) y++;
-            if (c == 'q') break;
+            if (c == 'q') { quit = true; break; }
         }
-        if (canMove(0,1)) y++;
-        else{
-            block2Board();
-            int removedLines = removeLine();
-            // them doan logic tang toc
-            if (removedLines > 0) {
-                totalLinesCleared += removedLines; // cong don hang da xoa
-                sleepTime = 500 - (totalLinesCleared / 5) * 50; // cu 5 hang xoa duoc thi giam 50ms thoi gian roi
-                // goi han toc do khong nho hon 100ms
-                if (sleepTime < 100) {
-                    sleepTime = 100;
-                }
-            }
-            spawnBlock();
+        if (quit) break;
 
+        // gravity (roi xuong) chi kich hoat khi du thoi gian sleepTime da troi qua
+        elapsedTime += FRAME_MS;
+        if (elapsedTime >= sleepTime){
+            elapsedTime = 0;
+            if (canMove(0,1)) y++;
+            else{
+                block2Board();
+                int removedLines = removeLine();
+                if (removedLines > 0) {
+                    totalLinesCleared += removedLines; // cong don hang da xoa
+                    sleepTime = 500 - (totalLinesCleared / 5) * 50; // cu 5 hang xoa duoc thi giam 50ms
+                    if (sleepTime < 100) {
+                        sleepTime = 100; // gioi han toc do khong nho hon 100ms
+                    }
+                }
+                spawnBlock();
+            }
         }
+
         block2Board();
         draw();
-       // usleep(500 * 1000); // usleep tinh bang micro-giay, nen 500ms = 500*1000
-        usleep(sleepTime * 1000); 
+        usleep(FRAME_MS * 1000); // luon ngu dung 16ms/frame, KHONG phu thuoc sleepTime nua
     }
     return 0;
 }
