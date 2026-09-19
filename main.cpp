@@ -101,6 +101,20 @@ char getch(){
     return ch;
 }
 // -------------------------------------------------------------
+void rotateCurrentBlock() {
+    char temp[4][4];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            temp[j][3 - i] = blocks[b][i][j];
+        }
+    }
+    
+    char old[4][4];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            old[i][j] = blocks[b][i][j];
+        }
+    }
 
 // forward declaration -- canMove() duoc dinh nghia ben duoi
 // nhung rotateCurrentBlock() can goi den no truoc do.
