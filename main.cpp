@@ -86,7 +86,35 @@ char getch(){
     return ch;
 }
 // -------------------------------------------------------------
+void rotateCurrentBlock() {
+    char temp[4][4];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            temp[j][3 - i] = blocks[b][i][j];
+        }
+    }
+    
+    char old[4][4];
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            old[i][j] = blocks[b][i][j];
+        }
+    }
 
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            blocks[b][i][j] = temp[i][j];
+        }
+    }
+
+    if (!canMove(0, 0)) {
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                blocks[b][i][j] = old[i][j];
+            }
+        }
+    }
+}
 bool canMove(int dx, int dy){
     for (int i = 0; i < 4; i++ )
         for (int j = 0; j < 4; j++ )
@@ -189,6 +217,7 @@ int main() {
         boardDelBlock();
         if (kbhit()){
             char c = getch();
+            if (c == 'w') rotateCurrentBlock();
             if (c == 'a' && canMove(-1,0)) x--;
             if (c == 'd' && canMove( 1,0)) x++;
             if (c == 'x' && canMove( 0,1)) y++;
