@@ -1,16 +1,22 @@
 #include <iostream>
-#include <cstdlib>   // rand(), srand(), system()
-#include <ctime>     // time()
+#include <cstdlib> // rand(), srand(), system()
+#include <ctime>   // time()
+#include <chrono>  // std::chrono::milliseconds
+#include <thread>  // std::this_thread::sleep_for
+#include <csignal> // xu ly Ctrl+C (SIGINT) an toan
+
+#ifdef _WIN32
+#include <conio.h>   // _kbhit(), _getch()
+#include <windows.h> // Sleep()
+#else
 #include <unistd.h>  // usleep(), read()
 #include <termios.h> // cau hinh terminal cho kbhit/getch
 #include <fcntl.h>   // fcntl() - doc phim khong block
-#include <csignal>   // xu ly Ctrl+C (SIGINT) an toan
+#endif
 
 #include "Blocks.h"
-// TAM THOI: xem ghi chu trong TempBlocks.h -- se bi thay the boi
-// IBlock.h, OBlock.h, TBlock.h, SBlock.h, ZBlock.h, JBlock.h, LBlock.h
-// that su khi Khanh merge xong tat ca cac nhanh cua nhom.
-#include "TempBlocks.h"
+#include "IBlock.h"
+#include "OBlock.h"
 
 using namespace std;
 
@@ -21,7 +27,7 @@ char board[H][W] = {};
 
 int x, y, b;
 
-const int NUM_BLOCKS = 7;
+const int NUM_BLOCKS = 2;
 
 // Con tro toi khoi DANG ROI hien tai. Moi lan spawn, ta tao 1 OBJECT
 // MOI (new IBlock()/new OBlock()/...) thay vi copy tu 1 mang khuon
@@ -29,17 +35,35 @@ const int NUM_BLOCKS = 7;
 // nhu bug cu (xem lai lich su commit currentShape refactor).
 Blocks *currentBlock = nullptr;
 
-// Factory: tao 1 object khoi moi dung loai (0..6), tra ve qua con tro
-// lop cha Blocks*. Day la noi DUY NHAT trong file can sua khi cac
-// class that (IBlock, OBlock...) duoc merge vao -- thay GenericBlock
-// bang dung ten class tuong ung.
+// Factory: tao 1 object khoi moi dung loai (0..1), tra ve qua con tro
+// lop cha Blocks*.
 Blocks *createBlock(int type)
 {
-    return new GenericBlock(TEMP_BLOCK_DATA[type]);
+    if (type == 0)
+        return new IBlock();
+    return new OBlock();
 }
 
-// ---- kbhit() / getch() thay the cho conio.h tren Linux ----
+// ---- Input khong blocking, dung duoc tren Windows va macOS ----
+#ifdef _WIN32
+
+void initTermios() {}
+void resetTermios() {}
+
+int kbhit()
+{
+    return _kbhit();
+}
+
+char readKey()
+{
+    return static_cast<char>(_getch());
+}
+
+#else
+
 struct termios oldt, newt;
+int pendingKey = -1;
 
 void initTermios()
 {
@@ -56,33 +80,46 @@ void resetTermios()
     tcsetattr(STDIN_FILENO, TCSANOW, &oldt); // tra terminal ve trang thai cu
 }
 
-// neu nguoi choi bam Ctrl+C (SIGINT) de thoat gap trong luc dang choi,
-// atexit() KHONG duoc goi -- terminal se bi ket o che do raw, nhin
-// giong nhu bi "crash"/treo. Dang ky handler nay de dam bao terminal
-// luon duoc tra ve trang thai cu truoc khi thoat, du thoat bang cach nao.
-void handleSignal(int)
-{
-    resetTermios();
-    exit(0);
-}
-
 int kbhit()
 {
     unsigned char ch;
     int nread = read(STDIN_FILENO, &ch, 1);
     if (nread == 1)
     {
-        ungetc(ch, stdin); // "tra lai" ky tu de getch() doc duoc
+        pendingKey = ch;
         return 1;
     }
     return 0;
 }
 
-char getch()
+char readKey()
 {
-    char ch;
-    ch = getchar();
+    char ch = static_cast<char>(pendingKey);
+    pendingKey = -1;
     return ch;
+}
+
+#endif
+
+// Dam bao terminal duoc tra ve trang thai cu khi ket thuc dot ngot.
+void handleSignal(int)
+{
+    resetTermios();
+    exit(0);
+}
+
+void sleepMilliseconds(int milliseconds)
+{
+    std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+}
+
+void clearScreen()
+{
+#ifdef _WIN32
+    system("cls");
+#else
+    system("clear");
+#endif
 }
 // -------------------------------------------------------------
 
@@ -166,7 +203,7 @@ void initBoard()
 
 void draw()
 {
-    system("clear"); // "cls" la lenh Windows, tren Linux phai dung "clear"
+    clearScreen();
     for (int i = 0; i < H; i++, cout << endl)
     {
         for (int j = 0; j < W; j++)
@@ -260,7 +297,7 @@ int main()
         // doc HET tat ca phim dang cho trong hang doi, khong chi 1 phim/vong lap
         while (kbhit())
         {
-            char c = getch();
+            char c = readKey();
             if (c == 'w')
                 rotateCurrentBlock();
             if (c == 'a' && canMove(-1, 0))
@@ -304,7 +341,7 @@ int main()
 
         block2Board();
         draw();
-        usleep(FRAME_MS * 1000); // luon ngu dung 16ms/frame, KHONG phu thuoc sleepTime nua
+        sleepMilliseconds(FRAME_MS); // luon ngu dung 16ms/frame, KHONG phu thuoc sleepTime nua
     }
 
     delete currentBlock; // giai phong khoi cuoi cung truoc khi thoat
