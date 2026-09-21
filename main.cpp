@@ -290,11 +290,17 @@ int main()
     signal(SIGTERM, handleSignal); // kill
 
     srand((unsigned int)time(0));
-    spawnBlock();
+    // initBoard() phai chay TRUOC spawnBlock(): canMove() doc board[][] de biet
+    // o nao trong, neu board chua init (toan '\0') thi canMove se tra ve false
+    // ngay tu dau va bi bao Game Over oan.
     initBoard();
+    spawnBlock();
 
     int elapsedTime = 0; // bo dem thoi gian rieng cho gravity (roi xuong)
     bool quit = false;
+
+    if (!canMove(0, 0))
+        quit = true;
 
     while (!quit)
     {
@@ -352,6 +358,8 @@ int main()
                     }
                 }
                 spawnBlock();
+                if (!canMove(0, 0))
+                    quit = true;
             }
         }
 
