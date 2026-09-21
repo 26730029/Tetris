@@ -4,6 +4,7 @@
 #include <chrono>  // std::chrono::milliseconds
 #include <thread>  // std::this_thread::sleep_for
 #include <csignal> // xu ly Ctrl+C (SIGINT) an toan
+#include <fstream> // ifstream/ofstream - doc/ghi highscore.txt
 
 #ifdef _WIN32
 #include <conio.h>   // _kbhit(), _getch()
@@ -276,6 +277,22 @@ int removeLine()
     }
 
     return removedLines;
+}
+
+const char *HIGHSCORE_FILE = "highscore.txt";
+
+// Doc diem cao tu file. Neu file chua ton tai (lan dau choi), is_open()
+// tra ve false va ham tra ve mac dinh 0.
+int loadHighScore()
+{
+    int highScore = 0;
+    ifstream inFile(HIGHSCORE_FILE);
+    if (inFile.is_open())
+    {
+        inFile >> highScore;
+        inFile.close();
+    }
+    return highScore;
 }
 
 int sleepTime = 500;
