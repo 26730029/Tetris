@@ -26,6 +26,7 @@ using namespace std;
 char board[H][W] = {};
 
 int x, y, b;
+int score = 0;
 
 const int NUM_BLOCKS = 2;
 
@@ -221,6 +222,11 @@ void draw()
                 cout << "[]"; // 2 ky tu dai dien cho khoi gach
             }
         }
+
+        if (i == 1)
+        {
+            cout << "  Score: " << score;
+        }
     }
 }
 
@@ -274,7 +280,6 @@ int removeLine()
 
 int sleepTime = 500;
 int totalLinesCleared = 0;
-int score = 0;
 const int FRAME_MS = 16; // ~60 FPS -- tan suat doc phim, KHONG lien quan toi toc do roi
 
 int main()
