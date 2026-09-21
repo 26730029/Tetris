@@ -4,6 +4,7 @@
 #include <chrono>  // std::chrono::milliseconds
 #include <thread>  // std::this_thread::sleep_for
 #include <csignal> // xu ly Ctrl+C (SIGINT) an toan
+#include <fstream> // ifstream/ofstream - doc/ghi highscore.txt
 
 #ifdef _WIN32
 #include <conio.h>   // _kbhit(), _getch()
@@ -29,6 +30,8 @@ using namespace std;
 char board[H][W] = {};
 
 int x, y, b;
+int score = 0;
+int highScore = 0;
 
 const int NUM_BLOCKS = 2;
 
@@ -137,7 +140,12 @@ void spawnBlock()
     b = rand() % NUM_BLOCKS;
     currentBlock = createBlock(b);
     x = 5;
-    y = 0;
+    // y=1 (khong phai 0): IBlock dung chieu doc chiem du ca 4 hang cua
+    // luoi 4x4 (hang 0..3), khong duoc dem hang trong nhu OBlock. Neu
+    // spawn o y=0, hang 0 cua IBlock roi dung vao hang tuong tren cung
+    // (board[0][..]='#'), khien canMove(0,0) luon bao va cham va Game
+    // Over oan ngay khi IBlock xuat hien, du board con trong hoan toan.
+    y = 1;
 }
 
 // Xoay khoi dang roi. currentBlock->rotate() la mot loi goi DA HINH:
@@ -224,6 +232,15 @@ void draw()
                 cout << "[]"; // 2 ky tu dai dien cho khoi gach
             }
         }
+
+        if (i == 1)
+        {
+            cout << "  Score: " << score;
+        }
+        else if (i == 2)
+        {
+            cout << "  High: " << highScore;
+        }
     }
 }
 
@@ -275,7 +292,34 @@ int removeLine()
     return removedLines;
 }
 
-int sleepTime = 500;
+const char *HIGHSCORE_FILE = "highscore.txt";
+
+// Doc diem cao tu file. Neu file chua ton tai (lan dau choi), is_open()
+// tra ve false va ham tra ve mac dinh 0.
+int loadHighScore()
+{
+    int highScore = 0;
+    ifstream inFile(HIGHSCORE_FILE);
+    if (inFile.is_open())
+    {
+        inFile >> highScore;
+        inFile.close();
+    }
+    return highScore;
+}
+
+// Ghi de diem cao moi vao file (ofstream mac dinh la che do ghi de/truncate).
+void saveHighScore(int highScore)
+{
+    ofstream outFile(HIGHSCORE_FILE);
+    if (outFile.is_open())
+    {
+        outFile << highScore;
+        outFile.close();
+    }
+}
+
+int sleepTime = 250; // toc do roi ban dau (ms/hang) -- giam tu 500 de khoi roi nhanh hon
 int totalLinesCleared = 0;
 const int FRAME_MS = 16; // ~60 FPS -- tan suat doc phim, KHONG lien quan toi toc do roi
 
@@ -287,11 +331,22 @@ int main()
     signal(SIGTERM, handleSignal); // kill
 
     srand((unsigned int)time(0));
-    spawnBlock();
+    highScore = loadHighScore();
+    // initBoard() phai chay TRUOC spawnBlock(): canMove() doc board[][] de biet
+    // o nao trong, neu board chua init (toan '\0') thi canMove se tra ve false
+    // ngay tu dau va bi bao Game Over oan.
     initBoard();
+    spawnBlock();
 
     int elapsedTime = 0; // bo dem thoi gian rieng cho gravity (roi xuong)
     bool quit = false;
+    bool gameOver = false; // phan biet thoat do Game Over voi thoat do bam 'q'
+
+    if (!canMove(0, 0))
+    {
+        quit = true;
+        gameOver = true;
+    }
 
     while (!quit)
     {
@@ -331,20 +386,47 @@ int main()
                 int removedLines = removeLine();
                 if (removedLines > 0)
                 {
+                    // Bang tinh diem chuan Tetris: Single/Double/Triple/Tetris
+                    if (removedLines == 1)
+                        score += 100;
+                    else if (removedLines == 2)
+                        score += 300;
+                    else if (removedLines == 3)
+                        score += 500;
+                    else if (removedLines == 4)
+                        score += 800;
+
                     totalLinesCleared += removedLines;              // cong don hang da xoa
-                    sleepTime = 500 - (totalLinesCleared / 5) * 50; // cu 5 hang xoa duoc thi giam 50ms
+                    sleepTime = 250 - (totalLinesCleared / 5) * 50; // cu 5 hang xoa duoc thi giam 50ms
                     if (sleepTime < 100)
                     {
                         sleepTime = 100; // gioi han toc do khong nho hon 100ms
                     }
                 }
                 spawnBlock();
+                if (!canMove(0, 0))
+                {
+                    quit = true;
+                    gameOver = true;
+                }
             }
         }
 
         block2Board();
         draw();
         sleepMilliseconds(FRAME_MS); // luon ngu dung 16ms/frame, KHONG phu thuoc sleepTime nua
+    }
+
+    if (gameOver)
+    {
+        cout << "GAME OVER" << endl;
+        cout << "Score: " << score << endl;
+
+        if (score > highScore)
+        {
+            highScore = score;
+            saveHighScore(highScore);
+        }
     }
 
     delete currentBlock; // giai phong khoi cuoi cung truoc khi thoat
