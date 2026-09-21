@@ -11,6 +11,7 @@
 // IBlock.h, OBlock.h, TBlock.h, SBlock.h, ZBlock.h, JBlock.h, LBlock.h
 // that su khi Khanh merge xong tat ca cac nhanh cua nhom.
 #include "TempBlocks.h"
+#include "LBlock.h"
 
 using namespace std;
 
