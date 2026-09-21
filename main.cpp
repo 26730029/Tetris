@@ -298,9 +298,13 @@ int main()
 
     int elapsedTime = 0; // bo dem thoi gian rieng cho gravity (roi xuong)
     bool quit = false;
+    bool gameOver = false; // phan biet thoat do Game Over voi thoat do bam 'q'
 
     if (!canMove(0, 0))
+    {
         quit = true;
+        gameOver = true;
+    }
 
     while (!quit)
     {
@@ -359,13 +363,22 @@ int main()
                 }
                 spawnBlock();
                 if (!canMove(0, 0))
+                {
                     quit = true;
+                    gameOver = true;
+                }
             }
         }
 
         block2Board();
         draw();
         sleepMilliseconds(FRAME_MS); // luon ngu dung 16ms/frame, KHONG phu thuoc sleepTime nua
+    }
+
+    if (gameOver)
+    {
+        cout << "GAME OVER" << endl;
+        cout << "Score: " << score << endl;
     }
 
     delete currentBlock; // giai phong khoi cuoi cung truoc khi thoat
