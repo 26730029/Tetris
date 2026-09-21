@@ -316,7 +316,7 @@ void saveHighScore(int highScore)
     }
 }
 
-int sleepTime = 500;
+int sleepTime = 250; // toc do roi ban dau (ms/hang) -- giam tu 500 de khoi roi nhanh hon
 int totalLinesCleared = 0;
 const int FRAME_MS = 16; // ~60 FPS -- tan suat doc phim, KHONG lien quan toi toc do roi
 
@@ -394,7 +394,7 @@ int main()
                         score += 800;
 
                     totalLinesCleared += removedLines;              // cong don hang da xoa
-                    sleepTime = 500 - (totalLinesCleared / 5) * 50; // cu 5 hang xoa duoc thi giam 50ms
+                    sleepTime = 250 - (totalLinesCleared / 5) * 50; // cu 5 hang xoa duoc thi giam 50ms
                     if (sleepTime < 100)
                     {
                         sleepTime = 100; // gioi han toc do khong nho hon 100ms
