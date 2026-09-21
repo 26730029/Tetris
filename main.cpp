@@ -274,6 +274,7 @@ int removeLine()
 
 int sleepTime = 500;
 int totalLinesCleared = 0;
+int score = 0;
 const int FRAME_MS = 16; // ~60 FPS -- tan suat doc phim, KHONG lien quan toi toc do roi
 
 int main()
@@ -328,6 +329,16 @@ int main()
                 int removedLines = removeLine();
                 if (removedLines > 0)
                 {
+                    // Bang tinh diem chuan Tetris: Single/Double/Triple/Tetris
+                    if (removedLines == 1)
+                        score += 100;
+                    else if (removedLines == 2)
+                        score += 300;
+                    else if (removedLines == 3)
+                        score += 500;
+                    else if (removedLines == 4)
+                        score += 800;
+
                     totalLinesCleared += removedLines;              // cong don hang da xoa
                     sleepTime = 500 - (totalLinesCleared / 5) * 50; // cu 5 hang xoa duoc thi giam 50ms
                     if (sleepTime < 100)
