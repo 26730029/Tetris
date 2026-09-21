@@ -413,6 +413,12 @@ int main()
     {
         cout << "GAME OVER" << endl;
         cout << "Score: " << score << endl;
+
+        if (score > highScore)
+        {
+            highScore = score;
+            saveHighScore(highScore);
+        }
     }
 
     delete currentBlock; // giai phong khoi cuoi cung truoc khi thoat
