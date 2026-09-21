@@ -295,6 +295,17 @@ int loadHighScore()
     return highScore;
 }
 
+// Ghi de diem cao moi vao file (ofstream mac dinh la che do ghi de/truncate).
+void saveHighScore(int highScore)
+{
+    ofstream outFile(HIGHSCORE_FILE);
+    if (outFile.is_open())
+    {
+        outFile << highScore;
+        outFile.close();
+    }
+}
+
 int sleepTime = 500;
 int totalLinesCleared = 0;
 const int FRAME_MS = 16; // ~60 FPS -- tan suat doc phim, KHONG lien quan toi toc do roi
