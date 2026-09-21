@@ -28,6 +28,7 @@ char board[H][W] = {};
 
 int x, y, b;
 int score = 0;
+int highScore = 0;
 
 const int NUM_BLOCKS = 2;
 
@@ -228,6 +229,10 @@ void draw()
         {
             cout << "  Score: " << score;
         }
+        else if (i == 2)
+        {
+            cout << "  High: " << highScore;
+        }
     }
 }
 
@@ -318,6 +323,7 @@ int main()
     signal(SIGTERM, handleSignal); // kill
 
     srand((unsigned int)time(0));
+    highScore = loadHighScore();
     // initBoard() phai chay TRUOC spawnBlock(): canMove() doc board[][] de biet
     // o nao trong, neu board chua init (toan '\0') thi canMove se tra ve false
     // ngay tu dau va bi bao Game Over oan.
