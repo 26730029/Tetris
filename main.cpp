@@ -137,7 +137,12 @@ void spawnBlock()
     b = rand() % NUM_BLOCKS;
     currentBlock = createBlock(b);
     x = 5;
-    y = 0;
+    // y=1 (khong phai 0): IBlock dung chieu doc chiem du ca 4 hang cua
+    // luoi 4x4 (hang 0..3), khong duoc dem hang trong nhu OBlock. Neu
+    // spawn o y=0, hang 0 cua IBlock roi dung vao hang tuong tren cung
+    // (board[0][..]='#'), khien canMove(0,0) luon bao va cham va Game
+    // Over oan ngay khi IBlock xuat hien, du board con trong hoan toan.
+    y = 1;
 }
 
 // Xoay khoi dang roi. currentBlock->rotate() la mot loi goi DA HINH:
