@@ -19,53 +19,6 @@
 //   khong doi hinh dang).
 // ================================================================
 
-class TBlock : public Blocks
-{
-public:
-    TBlock()
-    {
-        char initialShape[4][4] = {
-            {' ', ' ', ' ', ' '},
-            {' ', 'T', ' ', ' '},
-            {'T', 'T', 'T', ' '},
-            {' ', ' ', ' ', ' '}
-        };
-
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = 0; j < 4; j++)
-            {
-                shape[i][j] = initialShape[i][j];
-            }
-        }
-    }
-    
-};
-
-class SBlock : public Blocks
-{
-public:
-    SBlock()
-    {
-        
-        char initialShape[4][4] = {
-            {' ', ' ', ' ', ' '},
-            {' ', 'S', 'S', ' '},
-            {'S', 'S', ' ', ' '},
-            {' ', ' ', ' ', ' '}
-        };
-
-        for (int i = 0; i < 4; i++)
-        {
-            for (int j = 0; j < 4; j++)
-            {
-                shape[i][j] = initialShape[i][j];
-            }
-        }
-    }
-    
-};
-
 class Blocks
 {
 protected:
