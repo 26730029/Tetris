@@ -16,10 +16,12 @@
 #endif
 
 #include "Blocks.h"
-// TAM THOI: xem ghi chu trong TempBlocks.h -- se bi thay the boi
-// IBlock.h, OBlock.h, TBlock.h, SBlock.h, ZBlock.h, JBlock.h, LBlock.h
-// that su khi Khanh merge xong tat ca cac nhanh cua nhom.
-#include "TempBlocks.h"
+#include "IBlock.h"
+#include "OBlock.h"
+#include "TBlock.h"
+#include "SBlock.h"
+#include "ZBlock.h"
+#include "JBlock.h"
 #include "LBlock.h"
 
 using namespace std;
@@ -33,7 +35,7 @@ int x, y, b;
 int score = 0;
 int highScore = 0;
 
-const int NUM_BLOCKS = 2;
+const int NUM_BLOCKS = 7;
 
 // Con tro toi khoi DANG ROI hien tai. Moi lan spawn, ta tao 1 OBJECT
 // MOI (new IBlock()/new OBlock()/...) thay vi copy tu 1 mang khuon
@@ -41,13 +43,27 @@ const int NUM_BLOCKS = 2;
 // nhu bug cu (xem lai lich su commit currentShape refactor).
 Blocks *currentBlock = nullptr;
 
-// Factory: tao 1 object khoi moi dung loai (0..1), tra ve qua con tro
+// Factory: tao 1 object khoi moi dung loai (0..6), tra ve qua con tro
 // lop cha Blocks*.
 Blocks *createBlock(int type)
 {
-    if (type == 0)
+    switch (type)
+    {
+    case 0:
         return new IBlock();
-    return new OBlock();
+    case 1:
+        return new OBlock();
+    case 2:
+        return new TBlock();
+    case 3:
+        return new SBlock();
+    case 4:
+        return new ZBlock();
+    case 5:
+        return new JBlock();
+    default:
+        return new LBlock();
+    }
 }
 
 // ---- Input khong blocking, dung duoc tren Windows va macOS ----
