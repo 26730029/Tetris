@@ -98,7 +98,7 @@ Tetris/
 ├── ZBlock.h       # Khối Z
 ├── JBlock.h       # Khối J
 ├── LBlock.h       # Khối L
-├── TAI_LIEU.md    # Tài liệu kỹ thuật và hướng dẫn chi tiết
+├── TechnicalDocument.md    # Tài liệu kỹ thuật và hướng dẫn chi tiết
 └── README.md      # Giới thiệu nhanh dự án
 ```
 
@@ -106,7 +106,7 @@ Tetris/
 
 ## Tài liệu đầy đủ
 
-Xem [TAI_LIEU.md](TAI_LIEU.md) để đọc tài liệu chi tiết về kiến trúc, cấu trúc dữ liệu, thuật toán va chạm/xóa hàng, xử lý nhập liệu đa nền tảng, kiểm thử, giới hạn và định hướng phát triển.
+Xem [TechnicalDocument.md](TechnicalDocument.md) để đọc tài liệu chi tiết về kiến trúc, cấu trúc dữ liệu, thuật toán va chạm/xóa hàng, xử lý nhập liệu đa nền tảng, kiểm thử, giới hạn và định hướng phát triển.
 
 ## Giấy phép
 
