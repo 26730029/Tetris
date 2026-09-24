@@ -1,3 +1,5 @@
+Đây là bài tập cuối kỳ của lớp SS004.F31.CN1.2026
+
 # Tetris Terminal (C++)
 
 > Trò chơi Tetris chạy trên terminal, được xây dựng bằng C++ theo mô hình lập trình hướng đối tượng.
