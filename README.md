@@ -1,5 +1,3 @@
-# Snake
-
 Đây là bài tập cuối kỳ của lớp SS004.F31.CN1.2026
 
 Thành viên:
